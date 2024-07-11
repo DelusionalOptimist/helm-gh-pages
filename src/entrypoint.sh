@@ -17,29 +17,38 @@
 set -o errexit
 set -o pipefail
 
-GITHUB_TOKEN=$1
-CHARTS_DIR=$2
-CHARTS_URL=$3
-OWNER=$4
-REPOSITORY=$5
-BRANCH=$6
-TARGET_DIR=$7
-HELM_VERSION=$8
-LINTING=$9
-COMMIT_USERNAME=${10}
-COMMIT_EMAIL=${11}
-APP_VERSION=${12}
-CHART_VERSION=${13}
-INDEX_DIR=${14}
-ENTERPRISE_URL=${15}
-DEPENDENCIES=${16}
+CHARTS_DIR=$1
+CHARTS_URL=$2
+OWNER=$3
+REPOSITORY=$4
+BRANCH=$5
+TARGET_DIR=$6
+HELM_VERSION=$7
+LINTING=$8
+COMMIT_USERNAME=${9}
+COMMIT_EMAIL=${10}
+APP_VERSION=${11}
+CHART_VERSION=${12}
+INDEX_DIR=${13}
+ENTERPRISE_URL=${14}
+DEPENDENCIES=${15}
 
 CHARTS=()
 CHARTS_TMP_DIR=$(mktemp -d)
-REPO_ROOT=$(git rev-parse --show-toplevel)
+#REPO_ROOT=$(git rev-parse --show-toplevel)
 REPO_URL=""
 
+export GH_PROMPT_DISABLED=true
+
 main() {
+  if [[ -n "GH_TOKEN" ]]; then
+      echo "Using GH_TOKEN"
+      export GH_TOKEN=${GH_TOKEN}
+  else
+      echo "must specify GH_TOKEN env variable"
+      exit 1
+  fi
+
   if [[ -z "$HELM_VERSION" ]]; then
       HELM_VERSION="3.10.0"
   fi
@@ -74,9 +83,9 @@ main() {
 
   if [[ -z "$REPO_URL" ]]; then
       if [[ -z "$ENTERPRISE_URL" ]]; then
-          REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${OWNER}/${REPOSITORY}"
+          REPO_URL="https://oauth2:${GH_TOKEN}@github.com/${OWNER}/${REPOSITORY}"
       else
-          REPO_URL="https://x-access-token:${GITHUB_TOKEN}@${ENTERPRISE_URL}/${REPOSITORY}"
+          REPO_URL="https://oauth2:${GH_TOKEN}@${ENTERPRISE_URL}/${REPOSITORY}"
       fi
   fi
 
@@ -170,7 +179,7 @@ upload() {
   tmpDir=$(mktemp -d)
   pushd $tmpDir >& /dev/null
 
-  git clone ${REPO_URL}
+  gh repo clone "${OWNER}/${REPOSITORY}"
   cd ${REPOSITORY}
   git config user.name "${COMMIT_USERNAME}"
   git config user.email "${COMMIT_EMAIL}"

@@ -5,9 +5,6 @@ branding:
   icon: 'command'
   color: 'blue'
 inputs:
-  token:
-    description: "GitHub token"
-    required: true
   charts_dir:
     description: "The charts directory, defaults to `charts`"
     required: false
@@ -59,7 +56,6 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - ${{ inputs.token }}
     - ${{ inputs.charts_dir }}
     - ${{ inputs.charts_url }}
     - ${{ inputs.owner }}
